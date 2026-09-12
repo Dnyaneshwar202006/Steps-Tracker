@@ -1,29 +1,32 @@
-import { StyleSheet, Text, View } from 'react-native';
-import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import DashboardHeader from './components/DashBoardHeader';
+import StepsProgressCard from './components/StepsProgressCard';
+import ActivitySummary from './components/ActivitySummary';
 
-const DashboardScreen = () => {
+function DashboardScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Steps Tracker</Text>
-      <Text style={styles.subtitle}>DashboardScreen</Text>
-    </View>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.container}>
+        <DashboardHeader />
+        <StepsProgressCard />
+        <ActivitySummary />
+      </View>
+    </SafeAreaView>
   );
-};
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+
+  container: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+});
 
 export default DashboardScreen;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-  },
-  subtitle: {
-    marginTop: 8,
-    fontSize: 16,
-  },
-});
