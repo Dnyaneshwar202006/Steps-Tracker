@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DashboardHeader from './components/DashBoardHeader';
 import StepsProgressCard from './components/StepsProgressCard';
@@ -7,11 +7,11 @@ import ActivitySummary from './components/ActivitySummary';
 function DashboardScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={styles.container}>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <DashboardHeader />
         <StepsProgressCard />
         <ActivitySummary />
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -23,8 +23,9 @@ const styles = StyleSheet.create({
   },
 
   container: {
-    flex: 1,
     paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 120,
   },
 });
 
