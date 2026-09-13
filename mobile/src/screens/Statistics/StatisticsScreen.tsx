@@ -5,17 +5,9 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { getHistory } from '../../services/healthConnect.service';
 
-const weeklyData = [
-  { day: 'Mon', steps: 7231 },
-  { day: 'Tue', steps: 8420 },
-  { day: 'Wed', steps: 9843 },
-  { day: 'Thu', steps: 6520 },
-  { day: 'Fri', steps: 5567 },
-  { day: 'Sat', steps: 11240 },
-  { day: 'Sun', steps: 3450 },
-];
 function StepBar({ day, steps }: { day: string; steps: number }) {
   const height = useSharedValue(0);
   const targeHeight = Math.min((steps / 12000) * 140, 140);
@@ -33,13 +25,33 @@ function StepBar({ day, steps }: { day: string; steps: number }) {
   );
 }
 function StatisticsScreen() {
+  const [history, setHistory] = useState<Record<string, number>>({});
+  const [weeklyData, setWeeklyData] = useState<{day: string;steps: number}[]>([]);
+  const averageSteps = weeklyData.length > 0 ? Math.round(
+        weeklyData.reduce((total, item) => total + item.steps, 0) /
+        weeklyData.length,
+      ): 0;
+  useEffect(() => {
+    async function loadHistory() {
+      const data = await getHistory();
+      setHistory(data);
+      const weekly = Object.entries(data).slice(-7).map(([date, steps]) => ({
+        day: new Date(date).toLocaleDateString('en-US', {
+          weekday: 'short',
+        }),
+        steps: steps,
+      }));
+      setWeeklyData(weekly);
+    }
+    loadHistory();
+  }, []);
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
         <Text style={styles.title}>Statistics</Text>
         <View style={styles.statsCard}>
           <Text style={styles.cardTitle}>This Week</Text>
-          <Text style={styles.avg}>8,420</Text>
+          <Text style={styles.avg}>{averageSteps.toLocaleString()}</Text>
           <Text style={styles.avgLabel}>average steps</Text>
         </View>
         <View style={styles.chart}>
