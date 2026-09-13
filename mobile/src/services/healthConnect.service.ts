@@ -100,3 +100,27 @@ export async function getMinutes() {
 
   return Math.round(minutes);
 }
+
+export async function getHistory(){
+    const endTime = new Date();
+    const startTime = new Date();
+
+    startTime.setDate(startTime.getDate() - 19);
+    startTime.setHours(0, 0, 0, 0);
+    const res = readRecords('Steps',{
+        timeRangeFilter: {
+            operator: 'between',
+            startTime: startTime.toISOString(),
+            endTime: endTime.toISOString(),
+        },
+    });
+    const dailySteps: Record<string, number> = {};
+    (await res).records.forEach((record)=> {
+        const date = new Date(record.startTime).toDateString(); 
+        if(!dailySteps[date]){
+            dailySteps[date] = 0;
+        }
+        dailySteps[date] += record.count;
+    });
+    return dailySteps;
+}

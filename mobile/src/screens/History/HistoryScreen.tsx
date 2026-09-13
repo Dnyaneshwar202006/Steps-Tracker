@@ -1,45 +1,33 @@
+import { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getHistory } from '../../services/healthConnect.service';
 
-const history = [
-  { id: '1', date: 'Today', steps: 8420, goal: 10000 },
-  { id: '2', date: 'Yesterday', steps: 7231, goal: 10000 },
-  { id: '3', date: 'Sep 10', steps: 9842, goal: 10000 },
-  { id: '4', date: 'Sep 9', steps: 8420, goal: 10000 },
-  { id: '5', date: 'Sep 8', steps: 11240, goal: 10000 },
-  { id: '6', date: 'Sep 7', steps: 6389, goal: 10000 },
-  { id: '7', date: 'Sep 6', steps: 10125, goal: 10000 },
-  { id: '8', date: 'Sep 5', steps: 9203, goal: 10000 },
-  { id: '9', date: 'Sep 4', steps: 12480, goal: 10000 },
-  { id: '10', date: 'Sep 3', steps: 5647, goal: 10000 },
-  { id: '11', date: 'Sep 2', steps: 8891, goal: 10000 },
-  { id: '12', date: 'Sep 1', steps: 10340, goal: 10000 },
-  { id: '13', date: 'Aug 31', steps: 7502, goal: 10000 },
-  { id: '14', date: 'Aug 30', steps: 9987, goal: 10000 },
-  { id: '15', date: 'Aug 29', steps: 11875, goal: 10000 },
-  { id: '16', date: 'Aug 28', steps: 6120, goal: 10000 },
-  { id: '17', date: 'Aug 27', steps: 8756, goal: 10000 },
-  { id: '18', date: 'Aug 26', steps: 10620, goal: 10000 },
-  { id: '19', date: 'Aug 25', steps: 9314, goal: 10000 },
-  { id: '20', date: 'Aug 24', steps: 7893, goal: 10000 },
-];
 function HistoryScreen() {
+  const [history, setHistory] = useState<Record<string, number>>({});
+  useEffect(()=>{
+    async function loadHistory(){
+      const data = await getHistory();
+      setHistory(data);
+    }
+    loadHistory(); 
+  },[])
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
         <Text style={styles.title}>History</Text>
         <FlatList
-          data={history}
-          keyExtractor={item => item.id}
+          data={Object.entries(history)}
+          keyExtractor={item => item[0]}
           renderItem={({ item }) => {
-            const progress = Math.min(item.steps/item.goal, 1);
+            const progress = Math.min(item[1]/10000, 1);
             return(
             <View style={styles.items}>
               <View style={styles.itemHeader}>
-                <Text style={styles.date}>{item.date}</Text>
+                <Text style={styles.date}>{item[0]}</Text>
                 <Text style={styles.percentage}>{Math.round(progress * 100)}%</Text>
               </View>
-              <Text style={styles.steps}>{item.steps.toLocaleString()}</Text>
+              <Text style={styles.steps}>{item[1].toLocaleString()}</Text>
               <View style={styles.progressTrack}>
                 <View style={[styles.progress, {width: `${progress * 100}%`}]} />
               </View>
