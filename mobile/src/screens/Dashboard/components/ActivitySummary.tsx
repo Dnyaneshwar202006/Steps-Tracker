@@ -1,11 +1,11 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-function ActivitySummary({ calories, kilometers }: { calories: number, kilometers: number }) {
+function ActivitySummary({ calories, kilometers, mins }: { calories: number, kilometers: number, mins: number }) {
     const activities = [
         {value: calories, label: 'Calories'},
         {value: kilometers, label: 'Kilometers'},
-        {value: 68, label: 'Minutes'},
+        {value: mins, label: 'Minutes'},
     ]
   return (
     <View style={styles.container}>

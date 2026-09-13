@@ -6,6 +6,7 @@ import ActivitySummary from './components/ActivitySummary';
 import {
   getCaloriesBurntToday,
   getKilometersCoveredToday,
+  getMinutes,
   getStepsOfToday,
   initializeHealthConnect,
   requestPermissions,
@@ -16,39 +17,44 @@ function DashboardScreen() {
   const [todaySteps, setTodaySteps] = useState(0);
   const [calories, setCalories] = useState(0);
   const [dist, setDist] = useState(0);
+  const [mins, setMins] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
   //Load the data
-  async function loadDashboardData(){
-    const steps = await getStepsOfToday();
-    const cals = await getCaloriesBurntToday();
-    const distance = await getKilometersCoveredToday();
-      console.log("Todays steps: ", steps);
-      console.log("Calories Today: ", cals);
-      console.log("Kilometers Today: ", distance);
-      setTodaySteps(steps);
-      setCalories(cals);
-      setDist(distance);
+  async function loadDashboardData() {
+    const [steps, cals, distance, mins] = await Promise.all([
+      getStepsOfToday(),
+      getCaloriesBurntToday(),
+      getKilometersCoveredToday(),
+      getMinutes(),
+    ]);
+
+    console.log('Steps:', steps);
+    console.log('Calories:', cals);
+    console.log('Distance:', distance);
+    console.log('Minutes:', mins);
+
+    setTodaySteps(steps);
+    setCalories(cals);
+    setDist(distance);
+    setMins(mins);
   }
 
   //Refresh Function
-  async function handleRefreshing(){
+  async function handleRefreshing() {
     setRefreshing(true);
-    try{
+    try {
       await loadDashboardData();
-    }finally{
+    } finally {
       setRefreshing(false);
     }
   }
 
   useEffect(() => {
     async function setupHealthConnect() {
-      console.log('Health Connect setup started');
       const initialized = await initializeHealthConnect();
-      console.log('Health Connect initialized:', initialized);
       if (initialized) {
-        const permissions = await requestPermissions();
-        console.log('Health permissions:', permissions);
+        await requestPermissions();
         await loadDashboardData();
       }
     }
@@ -57,13 +63,19 @@ function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView 
-        style={styles.container} 
+      <ScrollView
+        style={styles.container}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefreshing} />}>
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefreshing}
+          />
+        }
+      >
         <DashboardHeader />
-        <StepsProgressCard steps={todaySteps}/>
-        <ActivitySummary calories={calories} kilometers={dist}/>
+        <StepsProgressCard steps={todaySteps} />
+        <ActivitySummary calories={calories} kilometers={dist} mins={mins} />
       </ScrollView>
     </SafeAreaView>
   );

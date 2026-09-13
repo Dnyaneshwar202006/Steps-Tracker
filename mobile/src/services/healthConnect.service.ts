@@ -1,69 +1,102 @@
-import { initialize, readRecords, requestPermission } from "react-native-health-connect";
+import {
+  initialize,
+  readRecords,
+  requestPermission,
+} from 'react-native-health-connect';
 
-export async function initializeHealthConnect(){
-    const isInitialized = await initialize();
+export async function initializeHealthConnect() {
+  const isInitialized = await initialize();
 
-    return isInitialized;
+  return isInitialized;
 }
 
 export async function requestPermissions() {
-    const permissions = await requestPermission([{
-        accessType: 'read',
-        recordType: 'Steps',
+  const permissions = await requestPermission([
+    {
+      accessType: 'read',
+      recordType: 'Steps',
     },
     {
-        accessType: 'read',
-        recordType: 'ActiveCaloriesBurned',
+      accessType: 'read',
+      recordType: 'ActiveCaloriesBurned',
     },
     {
-        accessType: 'read',
-        recordType: 'Distance',
-    }
-    ])
+      accessType: 'read',
+      recordType: 'Distance',
+    },
+    {
+      accessType: 'read',
+      recordType: 'ExerciseSession',
+    },
+  ]);
 
-    return permissions;
+  return permissions;
 }
 
-export async function getStepsOfToday(){
-    const res = await readRecords('Steps',{
-        timeRangeFilter: {
-            operator: 'between',
-            startTime: new Date(new Date().setHours(0,0,0,0)).toISOString(),
-            endTime: new Date().toISOString(),
-        },
-    });
+export async function getStepsOfToday() {
+  const res = await readRecords('Steps', {
+    timeRangeFilter: {
+      operator: 'between',
+      startTime: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
+      endTime: new Date().toISOString(),
+    },
+  });
 
-    console.log(res);
-
-    const totalSteps = res.records.reduce(( total, record )=> total + record.count , 0);
-    console.log(totalSteps)
-    return totalSteps;
+  const totalSteps = res.records.reduce(
+    (total, record) => total + record.count,
+    0,
+  );
+  console.log(totalSteps);
+  return totalSteps;
 }
 
-export async function getCaloriesBurntToday(){
-    const res = await readRecords('ActiveCaloriesBurned',{
-        timeRangeFilter: {
-            operator: 'between',
-            startTime: new Date(new Date().setHours(0,0,0,0)).toISOString(),
-            endTime: new Date().toISOString(),
-        },
-    });
-    console.log(res);
+export async function getCaloriesBurntToday() {
+  const res = await readRecords('ActiveCaloriesBurned', {
+    timeRangeFilter: {
+      operator: 'between',
+      startTime: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
+      endTime: new Date().toISOString(),
+    },
+  });
 
-    const caloriesBurnt = res.records.reduce(( total, record )=> total + record.energy.inKilocalories , 0);
-    return Math.round(caloriesBurnt);
+  const caloriesBurnt = res.records.reduce(
+    (total, record) => total + record.energy.inKilocalories,
+    0,
+  );
+  return Math.round(caloriesBurnt);
 }
 
-export async function getKilometersCoveredToday(){
-    const res = await readRecords('Distance',{
-        timeRangeFilter: {
-            operator: 'between',
-            startTime: new Date(new Date().setHours(0,0,0,0)).toISOString(),
-            endTime: new Date().toISOString(),
-        },
-    });
-    console.log(res);
+export async function getKilometersCoveredToday() {
+  const res = await readRecords('Distance', {
+    timeRangeFilter: {
+      operator: 'between',
+      startTime: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
+      endTime: new Date().toISOString(),
+    },
+  });
 
-    const distCovered = res.records.reduce(( total, record )=> total + record.distance.inKilometers, 0);
-    return Number(distCovered.toFixed(2));
+  const distCovered = res.records.reduce(
+    (total, record) => total + record.distance.inKilometers,
+    0,
+  );
+  return Number(distCovered.toFixed(2));
+}
+
+export async function getMinutes() {
+  const res = await readRecords('ExerciseSession', {
+    timeRangeFilter: {
+      operator: 'between',
+      startTime: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
+      endTime: new Date().toISOString(),
+    },
+  });
+
+  const minutes = res.records.reduce((total, record) => {
+    const start = new Date(record.startTime).getTime();
+    const end = new Date(record.endTime).getTime();
+
+    return total + (end - start) / (1000 * 60);
+  }, 0);
+
+  return Math.round(minutes);
 }
