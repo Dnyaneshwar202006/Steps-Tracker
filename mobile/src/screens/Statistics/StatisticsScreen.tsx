@@ -8,15 +8,15 @@ import Animated, {
 import { useEffect } from 'react';
 
 const weeklyData = [
-  { day: 'M', steps: 7231 },
-  { day: 'T', steps: 8420 },
-  { day: 'W', steps: 9843 },
-  { day: 'Th', steps: 6520 },
-  { day: 'F', steps: 5567 },
+  { day: 'Mon', steps: 7231 },
+  { day: 'Tue', steps: 8420 },
+  { day: 'Wed', steps: 9843 },
+  { day: 'Thu', steps: 6520 },
+  { day: 'Fri', steps: 5567 },
   { day: 'Sat', steps: 11240 },
   { day: 'Sun', steps: 3450 },
 ];
-function StepBar({ steps }: { steps: number }) {
+function StepBar({ day, steps }: { day: string; steps: number }) {
   const height = useSharedValue(0);
   const targeHeight = Math.min((steps / 12000) * 140, 140);
   useEffect(() => {
@@ -25,7 +25,12 @@ function StepBar({ steps }: { steps: number }) {
   const animatedStyle = useAnimatedStyle(() => ({
     height: height.value,
   }));
-  return <Animated.View style={[styles.bar, animatedStyle]} />;
+  return (
+    <View style={styles.barContainer}>
+      <Animated.View style={[styles.bar, animatedStyle]} />
+      <Text style={styles.day}>{day}</Text>
+    </View>
+  );
 }
 function StatisticsScreen() {
   return (
@@ -38,8 +43,8 @@ function StatisticsScreen() {
           <Text style={styles.avgLabel}>average steps</Text>
         </View>
         <View style={styles.chart}>
-          {weeklyData.map(day => (
-            <StepBar key={day.day} steps={day.steps} />
+          {weeklyData.map(item => (
+            <StepBar key={item.day} day={item.day} steps={item.steps} />
           ))}
         </View>
       </View>

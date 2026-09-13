@@ -3,8 +3,25 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import DashboardHeader from './components/DashBoardHeader';
 import StepsProgressCard from './components/StepsProgressCard';
 import ActivitySummary from './components/ActivitySummary';
+import {
+  initializeHealthConnect,
+  requestPermissions,
+} from '../../services/healthConnect.service';
+import { useEffect } from 'react';
 
 function DashboardScreen() {
+  useEffect(() => {
+    async function setupHealthConnect() {
+      console.log('Health Connect setup started');
+      const initialized = await initializeHealthConnect();
+      console.log('Health Connect initialized:', initialized);
+      if (initialized) {
+        const permissions = await requestPermissions();
+        console.log('Health permissions:', permissions);
+      }
+    }
+    setupHealthConnect();
+  }, []);
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -30,4 +47,3 @@ const styles = StyleSheet.create({
 });
 
 export default DashboardScreen;
-
