@@ -5,6 +5,7 @@ import StepsProgressCard from './components/StepsProgressCard';
 import ActivitySummary from './components/ActivitySummary';
 import {
   getCaloriesBurntToday,
+  getKilometersCoveredToday,
   getStepsOfToday,
   initializeHealthConnect,
   requestPermissions,
@@ -14,16 +15,20 @@ import { useEffect, useState } from 'react';
 function DashboardScreen() {
   const [todaySteps, setTodaySteps] = useState(0);
   const [calories, setCalories] = useState(0);
+  const [dist, setDist] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
   //Load the data
   async function loadDashboardData(){
     const steps = await getStepsOfToday();
     const cals = await getCaloriesBurntToday();
+    const distance = await getKilometersCoveredToday();
       console.log("Todays steps: ", steps);
       console.log("Calories Today: ", cals);
+      console.log("Kilometers Today: ", distance);
       setTodaySteps(steps);
       setCalories(cals);
+      setDist(distance);
   }
 
   //Refresh Function
@@ -58,7 +63,7 @@ function DashboardScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefreshing} />}>
         <DashboardHeader />
         <StepsProgressCard steps={todaySteps}/>
-        <ActivitySummary calories={calories}/>
+        <ActivitySummary calories={calories} kilometers={dist}/>
       </ScrollView>
     </SafeAreaView>
   );
