@@ -1,8 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import ProgressRing from './ProgressRing';
 
-function StepsProgressCard() {
-  const steps = 8420;
+function StepsProgressCard({steps}: {steps: number}) {
   const goal = 10000;
   const progress = Math.min(steps / goal , 1);
 
