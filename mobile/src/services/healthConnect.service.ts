@@ -10,7 +10,12 @@ export async function requestPermissions() {
     const permissions = await requestPermission([{
         accessType: 'read',
         recordType: 'Steps',
-    }])
+    },
+    {
+        accessType: 'read',
+        recordType: 'ActiveCaloriesBurned',
+    }
+    ])
 
     return permissions;
 }
@@ -29,4 +34,18 @@ export async function getStepsOfToday(){
     const totalSteps = res.records.reduce(( total, record )=> total + record.count , 0);
     console.log(totalSteps)
     return totalSteps;
+}
+
+export async function getCaloriesBurntToday(){
+    const res = await readRecords('ActiveCaloriesBurned',{
+        timeRangeFilter: {
+            operator: 'between',
+            startTime: new Date(new Date().setHours(0,0,0,0)).toISOString(),
+            endTime: new Date().toISOString(),
+        },
+    });
+    console.log(res);
+
+    const caloriesBurnt = res.records.reduce(( total, record )=> total + record.energy.inKilocalories , 0);
+    return Math.round(caloriesBurnt);
 }

@@ -4,6 +4,7 @@ import DashboardHeader from './components/DashBoardHeader';
 import StepsProgressCard from './components/StepsProgressCard';
 import ActivitySummary from './components/ActivitySummary';
 import {
+  getCaloriesBurntToday,
   getStepsOfToday,
   initializeHealthConnect,
   requestPermissions,
@@ -12,20 +13,24 @@ import { useEffect, useState } from 'react';
 
 function DashboardScreen() {
   const [todaySteps, setTodaySteps] = useState(0);
+  const [calories, setCalories] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
-  //Load the steps
-  async function loadSteps(){
+  //Load the data
+  async function loadDashboardData(){
     const steps = await getStepsOfToday();
+    const cals = await getCaloriesBurntToday();
       console.log("Todays steps: ", steps);
+      console.log("Calories Today: ", cals);
       setTodaySteps(steps);
+      setCalories(cals);
   }
 
   //Refresh Function
   async function handleRefreshing(){
     setRefreshing(true);
     try{
-      await loadSteps();
+      await loadDashboardData();
     }finally{
       setRefreshing(false);
     }
@@ -39,7 +44,7 @@ function DashboardScreen() {
       if (initialized) {
         const permissions = await requestPermissions();
         console.log('Health permissions:', permissions);
-        await loadSteps();
+        await loadDashboardData();
       }
     }
     setupHealthConnect();
@@ -53,7 +58,7 @@ function DashboardScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefreshing} />}>
         <DashboardHeader />
         <StepsProgressCard steps={todaySteps}/>
-        <ActivitySummary />
+        <ActivitySummary calories={calories}/>
       </ScrollView>
     </SafeAreaView>
   );

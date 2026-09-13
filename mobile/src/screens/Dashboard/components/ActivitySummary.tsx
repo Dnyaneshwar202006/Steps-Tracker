@@ -1,9 +1,9 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-function ActivitySummary() {
+function ActivitySummary({calories}: {calories: number}) {
     const activities = [
-        {value: 420, label: 'Calories'},
+        {value: calories, label: 'Calories'},
         {value: 5.8, label: 'Kilometers'},
         {value: 68, label: 'Minutes'},
     ]
