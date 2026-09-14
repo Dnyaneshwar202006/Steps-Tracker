@@ -38,3 +38,10 @@ export const login = async (req: Request, res: Response) => {
     });
   };
 };
+
+export const getMe = async (req: Request, res: Response) => {
+    return res.status(200).json({
+        message: "Authenticated User",
+        user: req.user,
+    })
+};
