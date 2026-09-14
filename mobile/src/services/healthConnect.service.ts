@@ -2,6 +2,8 @@ import {
   initialize,
   readRecords,
   requestPermission,
+  aggregateRecord,
+  aggregateGroupByPeriod,
 } from 'react-native-health-connect';
 
 export async function initializeHealthConnect() {
@@ -34,24 +36,27 @@ export async function requestPermissions() {
 }
 
 export async function getStepsOfToday() {
-  const res = await readRecords('Steps', {
+  const endTime = new Date();
+  const startTime = new Date(endTime);
+  startTime.setHours(0, 0, 0, 0);
+
+  const res = await aggregateRecord({
+    recordType: 'Steps',
     timeRangeFilter: {
       operator: 'between',
-      startTime: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
-      endTime: new Date().toISOString(),
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
     },
   });
 
-  const totalSteps = res.records.reduce(
-    (total, record) => total + record.count,
-    0,
-  );
-  console.log(totalSteps);
+  const totalSteps = res.COUNT_TOTAL ?? 0;
+  console.log('TODAY STEPS:', totalSteps);
   return totalSteps;
 }
 
 export async function getCaloriesBurntToday() {
-  const res = await readRecords('ActiveCaloriesBurned', {
+  const res = await aggregateRecord({
+    recordType: 'ActiveCaloriesBurned',
     timeRangeFilter: {
       operator: 'between',
       startTime: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
@@ -59,15 +64,13 @@ export async function getCaloriesBurntToday() {
     },
   });
 
-  const caloriesBurnt = res.records.reduce(
-    (total, record) => total + record.energy.inKilocalories,
-    0,
-  );
+  const caloriesBurnt = res.ACTIVE_CALORIES_TOTAL.inKilocalories ?? 0;
   return Math.round(caloriesBurnt);
 }
 
 export async function getKilometersCoveredToday() {
-  const res = await readRecords('Distance', {
+  const res = await aggregateRecord({
+    recordType: 'Distance',
     timeRangeFilter: {
       operator: 'between',
       startTime: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
@@ -75,10 +78,7 @@ export async function getKilometersCoveredToday() {
     },
   });
 
-  const distCovered = res.records.reduce(
-    (total, record) => total + record.distance.inKilometers,
-    0,
-  );
+  const distCovered = res.DISTANCE.inKilometers ?? 0;
   return Number(distCovered.toFixed(2));
 }
 
@@ -101,26 +101,31 @@ export async function getMinutes() {
   return Math.round(minutes);
 }
 
-export async function getHistory(){
-    const endTime = new Date();
-    const startTime = new Date();
+export async function getHistory() {
+  const endTime = new Date();
+  const startTime = new Date(endTime);
 
-    startTime.setDate(startTime.getDate() - 19);
-    startTime.setHours(0, 0, 0, 0);
-    const res = readRecords('Steps',{
-        timeRangeFilter: {
-            operator: 'between',
-            startTime: startTime.toISOString(),
-            endTime: endTime.toISOString(),
-        },
-    });
-    const dailySteps: Record<string, number> = {};
-    (await res).records.forEach((record)=> {
-        const date = new Date(record.startTime).toDateString(); 
-        if(!dailySteps[date]){
-            dailySteps[date] = 0;
-        }
-        dailySteps[date] += record.count;
-    });
-    return dailySteps;
+  startTime.setDate(startTime.getDate() - 19);
+  startTime.setHours(0, 0, 0, 0);
+
+  const res = await aggregateGroupByPeriod({
+    recordType: 'Steps',
+    timeRangeFilter: {
+      operator: 'between',
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+    },
+    timeRangeSlicer: {
+      period: 'DAYS',
+      length: 1,
+    }
+  });
+
+  const dailySteps: Record<string, number> = {};
+  res.forEach(record => {
+    const date = new Date(record.startTime).toDateString();
+    dailySteps[date] = record.result.COUNT_TOTAL ?? 0;
+  })
+
+  return dailySteps;
 }
