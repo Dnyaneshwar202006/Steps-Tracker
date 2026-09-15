@@ -6,17 +6,28 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useEffect, useState } from 'react';
-import { getHistory } from '../../services/healthConnect.service';
+import { getHistory } from '../../services/steps.service';
+
+type HistoryItem = {
+  id: string;
+  userId: string;
+  date: string;
+  steps: number;
+  createdAt: string;
+};
 
 function StepBar({ day, steps }: { day: string; steps: number }) {
   const height = useSharedValue(0);
   const targeHeight = Math.min((steps / 12000) * 140, 140);
+
   useEffect(() => {
     height.value = withTiming(targeHeight, { duration: 1000 });
   }, [targeHeight, height]);
+
   const animatedStyle = useAnimatedStyle(() => ({
     height: height.value,
   }));
+
   return (
     <View style={styles.barContainer}>
       <Animated.View style={[styles.bar, animatedStyle]} />
@@ -24,39 +35,72 @@ function StepBar({ day, steps }: { day: string; steps: number }) {
     </View>
   );
 }
+
 function StatisticsScreen() {
-  const [history, setHistory] = useState<Record<string, number>>({});
-  const [weeklyData, setWeeklyData] = useState<{day: string;steps: number}[]>([]);
-  const averageSteps = weeklyData.length > 0 ? Math.round(
-        weeklyData.reduce((total, item) => total + item.steps, 0) /
-        weeklyData.length,
-      ): 0;
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [weeklyData, setWeeklyData] = useState<
+    { day: string; steps: number }[]
+  >([]);
+
+  const averageSteps =
+    weeklyData.length > 0
+      ? Math.round(
+          weeklyData.reduce((total, item) => total + item.steps, 0) /
+            weeklyData.length,
+        )
+      : 0;
+
   useEffect(() => {
     async function loadHistory() {
-      const data = await getHistory();
-      setHistory(data);
-      const weekly = Object.entries(data).slice(-7).map(([date, steps]) => ({
-        day: new Date(date).toLocaleDateString('en-US', {
-          weekday: 'short',
-        }),
-        steps: steps,
-      }));
-      setWeeklyData(weekly);
+      try {
+        const data = await getHistory();
+
+        const historyData = data.result;
+
+        setHistory(historyData);
+
+        const weekly = historyData.slice(-7).map((item: HistoryItem) => {
+          const [year, month, day] = item.date.split('-').map(Number);
+
+          return {
+            day: new Date(year, month - 1, day).toLocaleDateString('en-US', {
+              weekday: 'short',
+            }),
+            steps: item.steps,
+          };
+        });
+
+        setWeeklyData(weekly);
+      } catch (error) {
+        console.error('Error: while fetching statistics', error);
+      }
     }
+
     loadHistory();
   }, []);
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
         <Text style={styles.title}>Statistics</Text>
+
         <View style={styles.statsCard}>
           <Text style={styles.cardTitle}>This Week</Text>
-          <Text style={styles.avg}>{averageSteps.toLocaleString()}</Text>
+
+          <Text style={styles.avg}>
+            {averageSteps.toLocaleString()}
+          </Text>
+
           <Text style={styles.avgLabel}>average steps</Text>
         </View>
+
         <View style={styles.chart}>
-          {weeklyData.map(item => (
-            <StepBar key={item.day} day={item.day} steps={item.steps} />
+          {weeklyData.map((item, index) => (
+            <StepBar
+              key={`${item.day}-${index}`}
+              day={item.day}
+              steps={item.steps}
+            />
           ))}
         </View>
       </View>
