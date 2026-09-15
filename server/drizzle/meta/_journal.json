@@ -8,6 +8,13 @@
       "when": 1789408328921,
       "tag": "0000_modern_wild_child",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789460307753,
+      "tag": "0001_curly_hellcat",
+      "breakpoints": true
     }
   ]
 }

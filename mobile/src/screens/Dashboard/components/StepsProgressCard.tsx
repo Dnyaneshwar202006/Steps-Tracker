@@ -1,9 +1,8 @@
 import { StyleSheet, Text, View } from 'react-native';
 import ProgressRing from './ProgressRing';
 
-function StepsProgressCard({steps}: {steps: number}) {
-  const goal = 10000;
-  const progress = Math.min(steps / goal , 1);
+function StepsProgressCard({steps, goal, loading }: {steps: number, goal: number, loading: boolean}) {
+  const progress = goal> 0 ? Math.min(steps / goal , 1) : 0;
 
   return (
     <View style={styles.container}>
@@ -14,8 +13,14 @@ function StepsProgressCard({steps}: {steps: number}) {
         size={200}
         strokeWidth={14} />
         <View style={styles.placeholder}>
-          <Text style={styles.steps}>{steps.toLocaleString()}</Text>
-          <Text style={styles.goal}>{goal.toLocaleString()}</Text>
+          {loading ? (
+            <Text style={styles.loading}>Loading....</Text>
+          ) : (
+            <>
+              <Text style={styles.steps}>{steps.toLocaleString()}</Text>
+              <Text style={styles.goal}>{goal.toLocaleString()}</Text>
+            </>
+          ) }
         </View>
       </View>
       <Text style={styles.percentage}>
@@ -64,6 +69,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
   },
+  loading: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#6B7280',
+  }
 });
 
 export default StepsProgressCard;

@@ -12,6 +12,7 @@ import {
   requestPermissions,
 } from '../../services/healthConnect.service';
 import { useEffect, useState } from 'react';
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
 function DashboardScreen() {
   const [todaySteps, setTodaySteps] = useState(0);
@@ -19,15 +20,25 @@ function DashboardScreen() {
   const [dist, setDist] = useState(0);
   const [mins, setMins] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [dailyGoal, setDailyGoal] = useState(10000);
+  const [loading, setLoading] = useState(true);
 
   //Load the data
   async function loadDashboardData() {
+  try {
+    setLoading(true);
+
     const [steps, cals, distance, mins] = await Promise.all([
       getStepsOfToday(),
       getCaloriesBurntToday(),
       getKilometersCoveredToday(),
       getMinutes(),
     ]);
+
+    const storedGoal = await AsyncStorage.getItem('goal');
+    if (storedGoal) {
+      setDailyGoal(Number(storedGoal));
+    }
 
     console.log('Steps:', steps);
     console.log('Calories:', cals);
@@ -38,7 +49,12 @@ function DashboardScreen() {
     setCalories(cals);
     setDist(distance);
     setMins(mins);
+  } catch (error) {
+    console.error('Dashboard data error:', error);
+  } finally {
+    setLoading(false);
   }
+}
 
   //Refresh Function
   async function handleRefreshing() {
@@ -74,8 +90,8 @@ function DashboardScreen() {
         }
       >
         <DashboardHeader />
-        <StepsProgressCard steps={todaySteps} />
-        <ActivitySummary calories={calories} kilometers={dist} mins={mins} />
+        <StepsProgressCard steps={todaySteps} goal={dailyGoal} loading={loading}/>
+        <ActivitySummary calories={calories} kilometers={dist} mins={mins} loading={loading}/>
       </ScrollView>
     </SafeAreaView>
   );

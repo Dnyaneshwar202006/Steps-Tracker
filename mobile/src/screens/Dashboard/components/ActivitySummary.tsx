@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-function ActivitySummary({ calories, kilometers, mins }: { calories: number, kilometers: number, mins: number }) {
+function ActivitySummary({ calories, kilometers, mins, loading }: { calories: number, kilometers: number, mins: number, loading: boolean }) {
     const activities = [
         {value: calories, label: 'Calories'},
         {value: kilometers, label: 'Kilometers'},
@@ -14,7 +14,7 @@ function ActivitySummary({ calories, kilometers, mins }: { calories: number, kil
         {activities.map((activity, idx)=>(
             <React.Fragment key={activity.label}>
                 <View style={styles.item}>
-                    <Text style={styles.value}>{activity.value}</Text>
+                    <Text style={styles.value}>{loading ? "..." : activity.value}</Text>
                     <Text style={styles.label}>{activity.label}</Text>
                 </View>
                 {idx< activities.length - 1 && (

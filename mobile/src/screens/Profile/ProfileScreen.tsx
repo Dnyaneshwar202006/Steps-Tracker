@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 
 function ProfileScreen() {
   const [user, setUser] = useState<any>(null);
+  const [goal, setGoal] = useState<number>(10000);
   useEffect(()=>{
     loadUser();
   },[]);
@@ -13,6 +14,10 @@ function ProfileScreen() {
       const stored = await AsyncStorage.getItem("user");
       if(stored){
         setUser(JSON.parse(stored));
+      }
+      const goals = await AsyncStorage.getItem("goal");
+      if(goals){
+        setGoal(JSON.parse(goals));
       }
     }catch(error){
       console.error("Error occurred: ", error);
@@ -32,7 +37,7 @@ function ProfileScreen() {
         </View>
         <View style={styles.goalCard}>
           <Text style={styles.cardTitle}>Daily Goal</Text>
-          <Text style={styles.goal}>10,000 Steps</Text>
+          <Text style={styles.goal}>{goal.toLocaleString()}</Text>
         </View>
       </View>
     </SafeAreaView>
