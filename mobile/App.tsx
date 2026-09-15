@@ -41,7 +41,7 @@ function App() {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <RootNavigator />
+      <RootNavigator isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated}/>
     </SafeAreaProvider>
   );
 }

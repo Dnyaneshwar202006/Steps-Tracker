@@ -13,7 +13,7 @@ import {
 import { getMe, loginUser } from '../../services/auth.service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-function SignInScreen() {
+function SignInScreen({ setIsAuthenticated }:{ setIsAuthenticated: (value: boolean) => void } ) {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,9 +32,9 @@ function SignInScreen() {
       console.log("STORED TOKEN:", token);
 
       const user = await getMe();
+      setIsAuthenticated(true);
 
       console.log("ME:", user);
-      navigation.navigate("Main" as never)
     } catch (error) {
       console.error("Login error", error);
     }

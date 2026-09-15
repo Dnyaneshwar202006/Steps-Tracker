@@ -156,13 +156,31 @@ function MainTabs() {
   );
 }
 
-function RootNavigator() {
+function RootNavigator({
+  isAuthenticated,
+  setIsAuthenticated,
+}: {
+  isAuthenticated: boolean;
+  setIsAuthenticated: (value: boolean) => void;
+}) {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name='Main' component={MainTabs} />
-            <Stack.Screen name='SignIn' component={SignInScreen} />
-            <Stack.Screen name='SignUp' component={SignUpScreen} />
+        {isAuthenticated ? (
+          <Stack.Screen name="Main" component={MainTabs} />
+        ) : (
+          <>
+            <Stack.Screen name="SignIn">
+              {props => (
+                <SignInScreen
+                  {...props}
+                  setIsAuthenticated={setIsAuthenticated}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="SignUp" component={SignUpScreen} />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
