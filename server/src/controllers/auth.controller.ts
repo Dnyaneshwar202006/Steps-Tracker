@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
 import { loginUser, registerUser } from "../services/auth.service";
+import db from "../db/db";
+import { users } from "../db/schema";
+import { eq } from "drizzle-orm";
 
 export const register = async (req: Request, res: Response) => {
   try {

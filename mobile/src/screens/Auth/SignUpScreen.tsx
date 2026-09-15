@@ -27,6 +27,7 @@ function SignUpScreen() {
       });
 
       console.log(res);
+      navigation.navigate("SignIn" as never)
     } catch (error) {
       console.error('Register Error', error);
     }

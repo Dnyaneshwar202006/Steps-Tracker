@@ -19,6 +19,7 @@ export const loginUser = async (data: LoginData) => {
     const res = await api.post("/auth/v1/login", data);
 
     await AsyncStorage.setItem("token", res.data.result.token);
+     await AsyncStorage.setItem("user", JSON.stringify(res.data.result.user));
 
     return res.data;
 }

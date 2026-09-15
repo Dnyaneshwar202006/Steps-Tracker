@@ -1,17 +1,34 @@
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 function ProfileScreen() {
+  const [user, setUser] = useState<any>(null);
+  useEffect(()=>{
+    loadUser();
+  },[]);
+  const loadUser = async () => {
+    try{
+      const stored = await AsyncStorage.getItem("user");
+      if(stored){
+        setUser(JSON.parse(stored));
+      }
+    }catch(error){
+      console.error("Error occurred: ", error);
+    }
+  }
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
         <Text style={styles.title}>Profile</Text>
         <View style={styles.profileCard}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>D</Text>
+            <Text style={styles.avatarText}>{user?.name?.charAt(0).toUpperCase()}</Text>
           </View>
-          <Text style={styles.name}>Dnyaneshwar</Text>
+          <Text style={styles.name}>{user?.name}</Text>
           <Text style={styles.subtitle}>Steps Tracker User</Text>
+          <Text style={styles.subtitle}>{user?.email}</Text>
         </View>
         <View style={styles.goalCard}>
           <Text style={styles.cardTitle}>Daily Goal</Text>
