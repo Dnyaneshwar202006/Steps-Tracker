@@ -1,14 +1,27 @@
 import { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getHistory } from '../../services/healthConnect.service';
+import {  } from '../../services/auth.service';
+import { getHistory } from '../../services/steps.service';
+
+type HistoryItem = {
+  id: string;
+  userID: string;
+  date: string;
+  steps: number;
+  createdAt: string;
+}
 
 function HistoryScreen() {
-  const [history, setHistory] = useState<Record<string, number>>({});
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   useEffect(()=>{
     async function loadHistory(){
-      const data = await getHistory();
-      setHistory(data);
+      try{
+        const data = await getHistory();
+        setHistory(data.result);
+      }catch(error){
+        console.error("Error: while fetching the data", error)
+      }
     }
     loadHistory(); 
   },[])
@@ -17,17 +30,17 @@ function HistoryScreen() {
       <View style={styles.container}>
         <Text style={styles.title}>History</Text>
         <FlatList
-          data={Object.entries(history)}
-          keyExtractor={item => item[0]}
+          data={history}
+          keyExtractor={item => item.id}
           renderItem={({ item }) => {
-            const progress = Math.min(item[1]/10000, 1);
+            const progress = Math.min(item.steps/10000, 1);
             return(
             <View style={styles.items}>
               <View style={styles.itemHeader}>
-                <Text style={styles.date}>{item[0]}</Text>
+                <Text style={styles.date}>{item.date}</Text>
                 <Text style={styles.percentage}>{Math.round(progress * 100)}%</Text>
               </View>
-              <Text style={styles.steps}>{item[1].toLocaleString()}</Text>
+              <Text style={styles.steps}>{item.steps.toLocaleString()}</Text>
               <View style={styles.progressTrack}>
                 <View style={[styles.progress, {width: `${progress * 100}%`}]} />
               </View>

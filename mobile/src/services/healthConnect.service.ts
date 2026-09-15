@@ -3,7 +3,6 @@ import {
   readRecords,
   requestPermission,
   aggregateRecord,
-  aggregateGroupByPeriod,
 } from 'react-native-health-connect';
 
 export async function initializeHealthConnect() {
@@ -99,33 +98,4 @@ export async function getMinutes() {
   }, 0);
 
   return Math.round(minutes);
-}
-
-export async function getHistory() {
-  const endTime = new Date();
-  const startTime = new Date(endTime);
-
-  startTime.setDate(startTime.getDate() - 19);
-  startTime.setHours(0, 0, 0, 0);
-
-  const res = await aggregateGroupByPeriod({
-    recordType: 'Steps',
-    timeRangeFilter: {
-      operator: 'between',
-      startTime: startTime.toISOString(),
-      endTime: endTime.toISOString(),
-    },
-    timeRangeSlicer: {
-      period: 'DAYS',
-      length: 1,
-    }
-  });
-
-  const dailySteps: Record<string, number> = {};
-  res.forEach(record => {
-    const date = new Date(record.startTime).toDateString();
-    dailySteps[date] = record.result.COUNT_TOTAL ?? 0;
-  })
-
-  return dailySteps;
 }

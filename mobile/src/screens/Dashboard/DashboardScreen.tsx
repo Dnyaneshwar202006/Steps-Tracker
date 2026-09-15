@@ -13,6 +13,7 @@ import {
 } from '../../services/healthConnect.service';
 import { useEffect, useState } from 'react';
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { saveSteps } from '../../services/steps.service';
 
 function DashboardScreen() {
   const [todaySteps, setTodaySteps] = useState(0);
@@ -34,6 +35,9 @@ function DashboardScreen() {
       getKilometersCoveredToday(),
       getMinutes(),
     ]);
+
+    const today = new Date().toISOString().split('T')[0];
+    await saveSteps(today, steps);
 
     const storedGoal = await AsyncStorage.getItem('goal');
     if (storedGoal) {
