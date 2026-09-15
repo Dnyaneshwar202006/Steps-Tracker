@@ -25,6 +25,7 @@ function SignUpScreen() {
         email,
         password,
       });
+
       console.log(res);
       navigation.navigate('SignIn' as never);
     } catch (error) {

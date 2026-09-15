@@ -15,6 +15,7 @@ import {
   StatisticsIcon,
   ProfileIcon,
 } from './TabBarIcon';
+
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SignInScreen from '../screens/Auth/SignInScreen';
 import SignUpScreen from '../screens/Auth/SignUpScreen';
@@ -159,9 +160,9 @@ function RootNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="SignIn" component={SignInScreen} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} />
-        <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen name='Main' component={MainTabs} />
+            <Stack.Screen name='SignIn' component={SignInScreen} />
+            <Stack.Screen name='SignUp' component={SignUpScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

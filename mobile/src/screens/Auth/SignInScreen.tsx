@@ -10,25 +10,35 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { loginUser } from '../../services/auth.service';
+import { getMe, loginUser } from '../../services/auth.service';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function SignInScreen() {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = async ()=>{
-    try{
-        const res = await loginUser({
-            email: email,
-            password: password,
-        })
-        console.log(res);
-        navigation.navigate("Main" as never);
-    }catch(error){
-        console.error("Login error", error);
+  const handleLogin = async () => {
+    try {
+      const res = await loginUser({
+        email,
+        password,
+      });
+
+      console.log("LOGIN RESPONSE:", res);
+
+      const token = await AsyncStorage.getItem("token");
+
+      console.log("STORED TOKEN:", token);
+
+      const user = await getMe();
+
+      console.log("ME:", user);
+      navigation.navigate("Main" as never)
+    } catch (error) {
+      console.error("Login error", error);
     }
-  }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -73,7 +83,7 @@ function SignInScreen() {
             />
           </View>
 
-          <TouchableOpacity style={styles.button}  onPress={handleLogin}>
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <Text style={styles.buttonText}>Sign In</Text>
           </TouchableOpacity>
         </View>
