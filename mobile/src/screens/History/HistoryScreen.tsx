@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {  } from '../../services/auth.service';
 import { getHistory } from '../../services/steps.service';
 
 type HistoryItem = {
   id: string;
-  userID: string;
+  userId: string;
   date: string;
   steps: number;
   createdAt: string;

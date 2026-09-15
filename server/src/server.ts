@@ -14,5 +14,6 @@ app.listen(port, async () => {
     console.log("Database Connected Successfully!");
   } catch (err) {
     console.error("Db Connection failed: ", err);
+    process.exit(1);
   }
 });
