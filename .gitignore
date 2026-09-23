@@ -79,3 +79,30 @@ yarn-error.log
 
 #environments
 .env
+
+
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+*.lock.hcl
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+*.backup
+
+# SSH Keys (never commit private keys)
+terraform-key
+*.pem
+*.pub
+
+
+# OS
+.DS_Store

@@ -58,3 +58,146 @@ jobs:
           path: mobile/android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 30
+
+
+  aws-device-farm-fuzz-test:
+    name: AWS Device Farm fuzz test
+    needs: build-release-apk
+    # Do not expose AWS credentials to pull requests from forks.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download release APK
+        uses: actions/download-artifact@v4
+        with:
+          name: mobile-release-apk
+          path: apk
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Provision Device Farm infrastructure
+        working-directory: infra/device-farm
+        run: |
+          terraform init
+          terraform validate
+          terraform plan 
+          terraform apply -auto-approve
+
+      - name: Upload APK and run fuzz test on real devices
+        env:
+          DEVICE_FARM_PROJECT_NAME: steps-tracker-android
+          DEVICE_FARM_DEVICE_POOL_PREFIX: android-compatibility-android
+          ANDROID_OS_VERSIONS: "10 11 12 13"
+        run: |
+          set -euo pipefail
+
+          mkdir -p device-farm-artifacts
+          project_arn="$(terraform -chdir=infra/device-farm output -raw device_farm_project_arn)"
+
+          upload_json="$(aws devicefarm create-upload \
+            --project-arn "$project_arn" \
+            --name app-release.apk \
+            --type ANDROID_APP \
+            --query 'upload.{arn:arn,url:url}' \
+            --output json)"
+          upload_arn="$(jq --raw-output '.arn' <<< "$upload_json")"
+          upload_url="$(jq --raw-output '.url' <<< "$upload_json")"
+
+          curl --fail --request PUT --upload-file apk/app-release.apk "$upload_url"
+
+          for attempt in {1..60}; do
+            upload_status="$(aws devicefarm get-upload --arn "$upload_arn" --query 'upload.status' --output text)"
+            if [ "$upload_status" = "SUCCEEDED" ]; then
+              break
+            fi
+            if [ "$upload_status" = "FAILED" ]; then
+              echo "Device Farm could not process the APK."
+              exit 1
+            fi
+            sleep 5
+          done
+
+          if [ "${upload_status:-}" != "SUCCEEDED" ]; then
+            echo "Timed out waiting for Device Farm to process the APK."
+            exit 1
+          fi
+
+          for android_version in $ANDROID_OS_VERSIONS; do
+            device_pool_name="$DEVICE_FARM_DEVICE_POOL_PREFIX-$android_version"
+            device_pool_arn="$(terraform -chdir=infra/device-farm output -json device_farm_device_pool_arn | jq -r --arg version "$android_version" '.[$version]')"
+            test -n "$device_pool_arn"
+            test "$device_pool_arn" != "None"
+
+            run_arn="$(aws devicefarm schedule-run \
+              --project-arn "$project_arn" \
+              --app-arn "$upload_arn" \
+              --device-pool-arn "$device_pool_arn" \
+              --name "mobile-android-$android_version-$GITHUB_RUN_ID" \
+              --test 'type=BUILTIN_FUZZ,parameters={event_count=500,throttle=100}' \
+              --query 'run.arn' \
+              --output text)"
+
+            run_url="$(aws devicefarm get-run --arn "$run_arn" --query 'run.webUrl' --output text)"
+            echo "Android $android_version report: $run_url"
+
+            for attempt in {1..120}; do
+              run_status="$(aws devicefarm get-run --arn "$run_arn" --query 'run.status' --output text)"
+              if [ "$run_status" = "COMPLETED" ]; then
+                break
+              fi
+              sleep 15
+            done
+
+            if [ "${run_status:-}" != "COMPLETED" ]; then
+              echo "Timed out waiting for Android $android_version Device Farm run."
+              exit 1
+            fi
+
+            run_result="$(aws devicefarm get-run --arn "$run_arn" --query 'run.result' --output text)"
+            echo "Android $android_version result: $run_result"
+
+            artifact_dir="device-farm-artifacts/android-$android_version"
+            mkdir -p "$artifact_dir"
+            for artifact_kind in LOG FILE SCREENSHOT; do
+              artifact_json="$(aws devicefarm list-artifacts --arn "$run_arn" --type "$artifact_kind" --output json)"
+              printf '%s\n' "$artifact_json" > "$artifact_dir/$artifact_kind.json"
+
+              while IFS=$'\t' read -r artifact_name artifact_extension artifact_url; do
+                test -n "$artifact_url"
+                safe_name="$(printf '%s' "$artifact_name" | tr -cs 'A-Za-z0-9._-' '_')"
+                extension="${artifact_extension:-bin}"
+                curl --fail --location "$artifact_url" --output "$artifact_dir/$artifact_kind-$safe_name.$extension"
+              done < <(jq -r '.artifacts[]? | [.name, .extension, .url] | @tsv' <<< "$artifact_json")
+            done
+
+            if [ "$run_result" != "PASSED" ]; then
+              failed=1
+            fi
+          done
+
+          exit "${failed:-0}"
+
+      - name: Upload Device Farm report and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: device-farm-test-report
+          path: device-farm-artifacts/
+          if-no-files-found: warn
+          retention-days: 30
