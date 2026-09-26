@@ -106,3 +106,9 @@ terraform-key
 
 # OS
 .DS_Store
+
+
+*.zip
+*.apk
+device-farm-artifacts/
+infra/device-farm/modules/lambda-*/device-farm-*.zip

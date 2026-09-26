@@ -1,7 +1,25 @@
 variable "aws_region" {
-  description = "AWS region for Device Farm. Device Farm mobile testing is available in us-west-2."
+  description = "AWS region for the event-driven runtime services: S3, SQS, Lambda, CloudWatch Logs, and SNS."
+  type        = string
+  default     = "ap-south-1"
+}
+
+variable "device_farm_region" {
+  description = "AWS region for Device Farm mobile projects and device pools."
   type        = string
   default     = "us-west-2"
+}
+
+variable "notification_email" {
+  description = "Email address subscribed to final Device Farm result notifications. Leave empty to omit the subscription."
+  type        = string
+  default     = "harshpoojary10b@gmail.com"
+}
+
+variable "input_object_prefix" {
+  description = "Only APK objects written under this prefix trigger a test run."
+  type        = string
+  default     = "releases/"
 }
 
 variable "project_name" {

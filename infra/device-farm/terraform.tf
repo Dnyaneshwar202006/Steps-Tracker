@@ -6,10 +6,12 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 6.0"
     }
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.7"
+    }
   }
 
-  # Created by infra/remote-access. The backend region is independent from the
-  # us-west-2 provider region used by AWS Device Farm.
   backend "s3" {
     bucket       = "prod-tfstate-state-tracker"
     key          = "device-farm/terraform.tfstate"
