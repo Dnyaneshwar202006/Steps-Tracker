@@ -27,13 +27,10 @@ resource "aws_iam_role_policy_attachment" "logging" {
 
 data "aws_iam_policy_document" "permissions" {
   statement {
-    actions   = ["s3:GetObject"]
-    resources = ["${var.input_bucket_arn}/*"]
+    actions   = ["s3:GetObject","s3:PutObject"]
+    resources = ["${var.bucket_arn}/*"]
   }
-  statement {
-    actions   = ["s3:PutObject"]
-    resources = ["${var.reports_bucket_arn}/*"]
-  }
+  
   statement {
     actions = [
       "devicefarm:CreateUpload",
@@ -82,7 +79,7 @@ resource "aws_lambda_function" "function" {
 
   environment {
     variables = {
-      REPORTS_BUCKET         = replace(var.reports_bucket_arn, "arn:aws:s3:::", "")
+      REPORTS_BUCKET         = replace(var.bucket_arn, "arn:aws:s3:::", "")
       NOTIFICATION_TOPIC_ARN = var.notification_topic_arn
       STATUS_QUEUE_URL       = var.queue_url
       PROJECT_ARN            = var.project_arn

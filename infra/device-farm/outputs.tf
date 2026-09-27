@@ -9,13 +9,13 @@ output "device_farm_device_pool_arn" {
 }
 
 output "device_farm_input_bucket" {
-  value       = module.artifacts.input_bucket_name
-  description = "Upload APKs under releases/ in this bucket to begin a Device Farm execution."
+  value       = module.artifacts.bucket_name
+  description = "Single Device Farm bucket. Upload APKs under releases/ to begin a test."
 }
 
 output "device_farm_reports_bucket" {
-  value       = module.artifacts.reports_bucket_name
-  description = "Bucket containing logs, screenshots, and test summaries."
+  value       = module.artifacts.bucket_name
+  description = "Same Device Farm bucket; reports are written under executions/."
 }
 
 output "device_farm_notification_topic_arn" {

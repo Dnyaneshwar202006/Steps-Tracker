@@ -54,10 +54,8 @@ module "test_queue" {
 }
 
 module "artifacts" {
-  source = "./modules/s3"
-
-  input_bucket_name   = "${local.artifact_bucket_prefix}-input"
-  reports_bucket_name = "${local.artifact_bucket_prefix}-reports"
+  source              = "./modules/s3"
+  bucket_name         = "${local.artifact_bucket_prefix}-input"
   input_object_prefix = var.input_object_prefix
   queue_arn           = module.test_queue.queue_arn
   tags                = var.tags
@@ -72,12 +70,10 @@ module "notifications" {
 }
 
 module "device_farm_runner" {
-  source = "./modules/lambda-runner"
-
+  source                 = "./modules/lambda-runner"
   function_name          = "${var.project_name}-runner"
   source_dir             = abspath("${path.root}/../../lambda/device-farm-runner")
-  input_bucket_arn       = module.artifacts.input_bucket_arn
-  reports_bucket_arn     = module.artifacts.reports_bucket_arn
+  bucket_arn             = module.artifacts.bucket_arn
   notification_topic_arn = module.notifications.topic_arn
   queue_arn              = module.test_queue.queue_arn
   queue_url              = module.test_queue.queue_url

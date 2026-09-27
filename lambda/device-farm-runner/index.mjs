@@ -28,7 +28,7 @@ const reportRootFor = (eventTime, sequencer) => {
   const date = new Date(eventTime ?? Date.now());
   const day = date.toISOString().slice(0, 10);
   const time = date.toISOString().slice(11, 19).replace(/:/g, "-");
-  return `reports/${day}/${time}-${safeName(sequencer ?? Date.now())}`;
+  return `executions/${day}/${time}-${safeName(sequencer ?? Date.now())}`;
 };
 
 const bodyToBuffer = async (body) => {
