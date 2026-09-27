@@ -24,6 +24,12 @@ const delaySeconds = 60;
 const maxChecks = 120;
 const safeName = (value) => String(value).replace(/[^A-Za-z0-9._-]/g, "_");
 const decodeKey = (key) => decodeURIComponent(key.replace(/\+/g, " "));
+const reportRootFor = (eventTime, sequencer) => {
+  const date = new Date(eventTime ?? Date.now());
+  const day = date.toISOString().slice(0, 10);
+  const time = date.toISOString().slice(11, 19).replace(/:/g, "-");
+  return `reports/${day}/${time}-${safeName(sequencer ?? Date.now())}`;
+};
 
 const bodyToBuffer = async (body) => {
   if (typeof body.transformToByteArray === "function") return Buffer.from(await body.transformToByteArray());
@@ -137,7 +143,14 @@ const handleInitialUpload = async (s3Event) => {
     const bucket = record.s3.bucket.name;
     const key = decodeKey(record.s3.object.key);
     const uploadArn = await createUpload({ bucket, key });
-    await enqueue({ action: "check-upload", bucket, key, uploadArn, attempts: 0 }, 30);
+    await enqueue({
+      action: "check-upload",
+      bucket,
+      key,
+      uploadArn,
+      reportRoot: reportRootFor(record.eventTime, record.s3.object.sequencer),
+      attempts: 0
+    }, 30);
   }
 };
 
@@ -156,8 +169,13 @@ const handleUploadCheck = async (message) => {
     return;
   }
   const runs = await scheduleRuns(message.uploadArn);
-  const reportRoot = `executions/${safeName(message.uploadArn.split(":").at(-1))}`;
-  await enqueue({ action: "check-runs", runs, reportsBucket: process.env.REPORTS_BUCKET, reportRoot, attempts: 0 }, delaySeconds);
+  await enqueue({
+    action: "check-runs",
+    runs,
+    reportsBucket: process.env.REPORTS_BUCKET,
+    reportRoot: message.reportRoot,
+    attempts: 0
+  }, delaySeconds);
 };
 
 const handleRunCheck = async (message) => {
