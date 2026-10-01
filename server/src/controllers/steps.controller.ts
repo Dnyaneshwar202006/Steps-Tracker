@@ -46,7 +46,7 @@ export const getTheHistory = async (req: Request, res: Response) => {
         })
     }catch(error){
         console.error("Error: fetching history of steps", error);
-        res.status(500).json({
+        return res.status(500).json({
             message: "Unable to fetch the history.. "
         })
     }

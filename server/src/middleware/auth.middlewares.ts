@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { isTokenBlocked } from "../services/auth.service";
 
-export const authenticate = (
+export const authenticate = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -19,6 +20,14 @@ export const authenticate = (
         message: "Unauthorized User",
       });
     }
+
+    const blocked = await isTokenBlocked(token);
+    if (blocked) {
+      return res.status(401).json({
+        message: "Token has been revoked. Please login again.",
+      });
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
     if (typeof decoded === "string") {
       return res.status(401).json({

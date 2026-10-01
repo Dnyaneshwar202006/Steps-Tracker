@@ -6,25 +6,38 @@ interface RegistrationData {
     email: string;
     password: string;
 }
+
 interface LoginData {
     email: string;
     password: string;
 }
+
 export const registerUser = async (data: RegistrationData) => {
     const res = await api.post("/auth/v1/register", data);
-
     return res.data;
-}
+};
+
 export const loginUser = async (data: LoginData) => {
     const res = await api.post("/auth/v1/login", data);
 
     await AsyncStorage.setItem("token", res.data.result.token);
-     await AsyncStorage.setItem("user", JSON.stringify(res.data.result.user));
+    await AsyncStorage.setItem("user", JSON.stringify(res.data.result.user));
 
     return res.data;
-}
+};
+
 export const getMe = async () => {
     const res = await api.get("/auth/v1/me");
-    
     return res.data;
-}
+};
+
+export const logoutUser = async () => {
+    try {
+        await api.post("/auth/v1/logout");
+    } catch (error) {
+        console.warn("Logout API request error (proceeding with local cleanup):", error);
+    } finally {
+        await AsyncStorage.removeItem("token");
+        await AsyncStorage.removeItem("user");
+    }
+};

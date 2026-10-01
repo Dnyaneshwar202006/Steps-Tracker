@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import db from "../db/db";
-import { users } from "../db/schema";
+import { users, blockedTokens } from "../db/schema";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
@@ -88,3 +88,28 @@ export const loginUser = async (email: string, password: string) => {
     token,
   };
 };
+
+export const logoutUser = async (token: string) => {
+  const decoded = jwt.decode(token) as jwt.JwtPayload;
+
+  if (!decoded || !decoded.exp) {
+    throw new Error("Invalid token");
+  }
+
+  const expiresAt = new Date(decoded.exp * 1000);
+
+  await db.insert(blockedTokens).values({
+    token,
+    expiresAt,
+  });
+};
+
+export const isTokenBlocked = async (token: string): Promise<boolean> => {
+  const [blocked] = await db
+    .select()
+    .from(blockedTokens)
+    .where(eq(blockedTokens.token, token));
+
+  return !!blocked;
+};
+

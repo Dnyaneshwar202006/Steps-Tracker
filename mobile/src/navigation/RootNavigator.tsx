@@ -85,7 +85,11 @@ function ProfileTabIcon(props: {
   return <TabIcon {...props} Icon={ProfileIcon} />;
 }
 
-function MainTabs() {
+function MainTabs({
+  setIsAuthenticated,
+}: {
+  setIsAuthenticated: (value: boolean) => void;
+}) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -147,11 +151,17 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
         options={{
           tabBarIcon: ProfileTabIcon,
         }}
-      />
+      >
+        {props => (
+          <ProfileScreen
+            {...props}
+            setIsAuthenticated={setIsAuthenticated}
+          />
+        )}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }
@@ -167,7 +177,14 @@ function RootNavigator({
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isAuthenticated ? (
-          <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen name="Main">
+            {props => (
+              <MainTabs
+                {...props}
+                setIsAuthenticated={setIsAuthenticated}
+              />
+            )}
+          </Stack.Screen>
         ) : (
           <>
             <Stack.Screen name="SignIn">

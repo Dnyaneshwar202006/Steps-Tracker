@@ -1,8 +1,5 @@
 import { Request, Response } from "express";
-import { loginUser, registerUser } from "../services/auth.service";
-import db from "../db/db";
-import { users } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { loginUser, logoutUser, registerUser } from "../services/auth.service";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -40,6 +37,25 @@ export const login = async (req: Request, res: Response) => {
         message: "Invalid Email or Password",
     });
   };
+};
+
+export const logout = async (req: Request, res: Response) => {
+  try {
+    const header = req.headers.authorization;
+    const token = header!.split(" ")[1];
+
+    await logoutUser(token);
+
+    return res.status(200).json({
+      message: "Logout Successful",
+    });
+  } catch (error) {
+    console.error("Logout failed: ", error);
+
+    return res.status(500).json({
+      message: "Logout failed",
+    });
+  }
 };
 
 export const getMe = async (req: Request, res: Response) => {
